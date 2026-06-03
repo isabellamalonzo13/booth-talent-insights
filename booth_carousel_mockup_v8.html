@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Booth Talent Report — Carousel v5</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f0f0ee;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+  .viewer { width: 100%; max-width: 460px; }
+  .nav { display: flex; align-items: center; gap: 6px; margin-bottom: 1rem; padding: 0 2px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #ccc; cursor: pointer; border: none; transition: all 0.2s; }
+  .dot.active { background: #0D4B3B; width: 20px; border-radius: 3px; }
+  .counter { font-size: 12px; color: #999; margin-left: auto; font-weight: 500; }
+  .slides { position: relative; }
+  .slide { display: none; }
+  .slide.active { display: block; }
+
+  .card {
+    width: 100%;
+    aspect-ratio: 4/5;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brand-tag {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-align: center;
+    padding: 14px 0 0;
+    position: relative;
+    z-index: 2;
+  }
+
+  .card-inner {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 24px 24px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .headline-impact {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 36px;
+    line-height: 1.1;
+    margin: auto 0;
+  }
+
+  .headline-impact .underline {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 3px;
+  }
+
+  .support-box {
+    padding: 10px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.55;
+    margin-top: 16px;
+    border-radius: 3px;
+  }
+
+  .support-box-yellow { background: #FFE566; color: #1a1a1a; }
+  .support-box-teal { background: #589992; color: #fff; }
+  .support-box-green { background: #0D4B3B; color: #fff; }
+  .support-box-lav { background: #CD9ACD; color: #fff; }
+  .support-box-white { background: rgba(255,255,255,0.92); color: #1a1a1a; }
+  .support-box-dark { background: rgba(0,0,0,0.75); color: #fff; }
+
+  /* Backgrounds */
+  .bg-green { background: #0D4B3B; }
+  .bg-white { background: #ffffff; }
+  .bg-cream { background: #FAF8F3; }
+  .bg-sky { background: #DBEAF4; }
+  .bg-dark { background: #111111; }
+
+  .bg-photo-1 {
+    background: linear-gradient(160deg, #0D4B3B 0%, #1a6b55 50%, #589992 100%);
+  }
+  .bg-photo-2 {
+    background: #ffffff;
+  }
+  .bg-photo-3 {
+    background: #FAF8F3;
+  }
+  .bg-photo-4 {
+    background: #0D4B3B;
+  }
+  .bg-photo-5 {
+    background: #DBEAF4;
+  }
+  .bg-photo-6 {
+    background: linear-gradient(160deg, #0D4B3B 0%, #1a6b55 100%);
+  }
+
+  .text-white { color: #ffffff; }
+  .text-green { color: #0D4B3B; }
+  .text-dark { color: #111111; }
+  .text-teal { color: #589992; }
+
+  /* Decorative elements */
+  .deco-circle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.12;
+  }
+
+  /* Stat blocks */
+  .stat-strip {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .stat-block {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 3px;
+  }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 900; line-height: 1; }
+  .stat-label { font-size: 10px; font-weight: 500; line-height: 1.4; margin-top: 4px; opacity: 0.85; }
+
+  /* Skill rows */
+  .skill-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+  .skill-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .skill-label { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+  .skill-desc { font-family: 'Inter', sans-serif; font-size: 11px; line-height: 1.5; opacity: 0.75; }
+
+  /* Before/after */
+  .ba-row { border-radius: 3px; padding: 10px 12px; margin-bottom: 8px; }
+  .ba-label { font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 5px; }
+  .ba-text { font-size: 12px; font-weight: 500; line-height: 1.45; }
+
+  /* Nav */
+  .nav-btns { display: flex; gap: 8px; justify-content: center; margin-top: 1rem; }
+  .nav-btn {
+    padding: 7px 20px; border-radius: 2px;
+    border: 1px solid #ccc; background: white;
+    color: #333; font-size: 13px; font-weight: 500;
+    cursor: pointer; font-family: 'Inter', sans-serif;
+  }
+  .nav-btn:hover { background: #f5f5f5; }
+
+  .divider-thin { height: 1px; background: rgba(0,0,0,0.1); margin: 12px 0; }
+  .divider-white { height: 1px; background: rgba(255,255,255,0.2); margin: 12px 0; }
+</style>
+</head>
+<body>
+
+<div class="viewer">
+  <div class="nav" id="nav"></div>
+
+  <div class="slides">
+
+    <!-- SLIDE 1 -->
+    <div class="slide active">
+      <div class="card bg-photo-1">
+        <div class="deco-circle" style="width:280px;height:280px;background:#fff;top:-80px;right:-80px;"></div>
+        <div class="brand-tag text-white" style="opacity:0.6;">Booth Talent Insights</div>
+        <div class="card-inner" style="justify-content:space-between;">
+          <div style="flex:1; display:flex; align-items:center;">
+            <div>
+              <div class="headline-impact text-white" style="margin-bottom:14px;">The most in-demand marketing skill right now is the one <span class="underline">AI can&rsquo;t replicate</span>.</div>
+              <div style="font-family:'Inter',sans-serif; font-size:13px; color:rgba(255,255,255,0.7); line-height:1.5;">Here&rsquo;s what the data says &mdash; and what to do with it.</div>
+            </div>
+          </div>
+          <div class="support-box support-box-yellow">
+            61% of marketers say AI is driving the biggest disruption to the industry in 20 years. &mdash; HubSpot, 2026
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 -->
+    <div class="slide">
+      <div class="card bg-photo-2">
+        <div class="brand-tag text-green" style="opacity:0.5;">Booth Talent Insights</div>
+        <div class="card-inner">
+          <div style="flex:1; display:flex; align-items:center;">
+            <div>
+              <div class="headline-impact text-dark">AI gave everyone the <span class="underline" style="text-decoration-color:#589992;">same tools</span>.</div>
+              <div style="height:12px;"></div>
+              <div class="headline-impact text-teal" style="font-size:28px;">It didn&rsquo;t give everyone the same thinking.</div>
+            </div>
+          </div>
+          <div class="stat-strip">
+            <div class="stat-block" style="background:#f0faf6;">
+              <div class="stat-num text-green">94%</div>
+              <div class="stat-label text-green">of marketers using AI in content creation</div>
+            </div>
+            <div class="stat-block" style="background:#fff0f0;">
+              <div class="stat-num" style="color:#c0392b;">53%</div>
+              <div class="stat-label" style="color:#c0392b;">struggle to stand out because of it</div>
+            </div>
+          </div>
+          <div style="font-family:'Inter',sans-serif; font-size:12px; color:#4b5563; line-height:1.6; margin-top:12px;">When every marketer has the same toolkit, the differentiator stops being the tool. It becomes the thinking that happens before anyone opens it.</div>
+          <div style="font-size:9px; color:#aaa; margin-top:8px;">HubSpot State of Marketing, 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 -->
+    <div class="slide">
+      <div class="card bg-photo-3">
+        <div class="brand-tag text-green" style="opacity:0.5;">Booth Talent Insights</div>
+        <div class="card-inner">
+          <div class="headline-impact text-green" style="font-size:30px; margin-bottom:6px;">AI is <span class="underline" style="text-decoration-color:#589992;">splitting marketing</span> into two.</div>
+          <div style="font-family:'Inter',sans-serif; font-size:12px; color:#6b7280; margin-bottom:16px;">The question is which side you're building toward.</div>
+          <div style="display:flex; gap:10px; flex:1; align-items:stretch;">
+            <div style="flex:1; background:#111111; border-radius:6px; padding:14px 12px; display:flex; flex-direction:column;">
+              <div style="font-family:'Inter',sans-serif; font-size:9px; font-weight:700; letter-spacing:0.1em; color:#888; text-transform:uppercase; margin-bottom:10px;">AI handles</div>
+              <div style="display:flex; flex-direction:column; gap:8px; flex:1; justify-content:center;">
+                <div style="font-family:'Inter',sans-serif; font-size:11px; color:rgba(255,255,255,0.65); line-height:1.4; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.08);">Content production at scale</div>
+                <div style="font-family:'Inter',sans-serif; font-size:11px; color:rgba(255,255,255,0.65); line-height:1.4; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.08);">SEO copywriting</div>
+                <div style="font-family:'Inter',sans-serif; font-size:11px; color:rgba(255,255,255,0.65); line-height:1.4; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.08);">Data reporting</div>
+                <div style="font-family:'Inter',sans-serif; font-size:11px; color:rgba(255,255,255,0.65); line-height:1.4;">Scheduling &amp; distribution</div>
+              </div>
+            </div>
+            <div style="flex:1; background:#0D4B3B; border-radius:6px; padding:14px 12px; display:flex; flex-direction:column;">
+              <div style="font-family:'Inter',sans-serif; font-size:9px; font-weight:700; letter-spacing:0.1em; color:rgba(255,255,255,0.5); text-transform:uppercase; margin-bottom:10px;">Humans own</div>
+              <div style="display:flex; flex-direction:column; gap:8px; flex:1; justify-content:center;">
+                <div style="font-family:'Inter',sans-serif; font-size:11px; color:rgba(255,255,255,0.9); line-height:1.4; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.12);">Creative strategy</div>
+                <div style="font-family:'Inter',sans-serif; font-size:11px; color:rgba(255,255,255,0.9); line-height:1.4; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.12);">Brand judgment</div>
+                <div style="font-family:'Inter',sans-serif; font-size:11px; color:rgba(255,255,255,0.9); line-height:1.4; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.12);">Audience insight</div>
+                <div style="font-family:'Inter',sans-serif; font-size:11px; color:rgba(255,255,255,0.9); line-height:1.4;">Revenue-linked decisions</div>
+              </div>
+            </div>
+          </div>
+          <div class="support-box support-box-yellow" style="margin-top:14px; font-weight:600;">
+            Worth knowing which column your next role will ask you to grow.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 -->
+    <div class="slide">
+      <div class="card bg-photo-4">
+        <div class="brand-tag text-white" style="opacity:0.5;">Booth Talent Insights</div>
+        <div class="card-inner">
+          <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+            <div class="headline-impact text-white" style="font-size:28px; margin-bottom:14px;">Same experience.<br>Two very <span class="underline" style="text-decoration-color:#FFE566;">different signals</span>.</div>
+            <div style="font-family:'Inter',sans-serif; font-size:12px; color:rgba(255,255,255,0.65); line-height:1.6; margin-bottom:14px;">Clicks and MQLs had a good run. The metrics that matter now are revenue, pipeline, and proof that your work actually moved something &mdash; and your resume should speak that language.</div>
+          </div>
+          <div class="ba-row" style="background:rgba(255,255,255,0.1); border-left: 3px solid #e74c3c;">
+            <div class="ba-label" style="color:rgba(255,100,100,0.9);">tasks</div>
+            <div class="ba-text text-white" style="opacity:0.75;">&ldquo;Managed content production for multiple channels.&rdquo;</div>
+          </div>
+          <div class="ba-row" style="background:rgba(255,229,102,0.15); border-left: 3px solid #FFE566;">
+            <div class="ba-label" style="color:#FFE566;">impact</div>
+            <div class="ba-text text-white">&ldquo;Built a content workflow that increased output by 3x while maintaining quality and brand consistency.&rdquo;</div>
+          </div>
+          <div class="support-box support-box-yellow" style="margin-top:4px; font-weight:700;">
+            Lead with outcomes. Not effort. That&rsquo;s what gets the callback.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 -->
+    <div class="slide">
+      <div class="card bg-photo-5">
+        <div class="brand-tag text-green" style="opacity:0.5;">Booth Talent Insights</div>
+        <div class="card-inner">
+          <div style="flex:1; display:flex; align-items:center;">
+            <div>
+              <div class="headline-impact text-green">You&rsquo;re probably <span class="underline" style="text-decoration-color:#0D4B3B;">closer than you think</span>.</div>
+              <div style="height:16px;"></div>
+              <div style="font-family:'Inter',sans-serif; font-size:14px; color:#374151; line-height:1.6;">The gap isn&rsquo;t talent. It&rsquo;s how you&rsquo;re telling the story of your work.</div>
+              <div style="height:10px;"></div>
+              <div style="font-family:'Inter',sans-serif; font-size:14px; color:#374151; line-height:1.6;">When your skills align with what the market needs, you gain more than job options &mdash; you gain choice, flexibility, and career leverage.</div>
+            </div>
+          </div>
+          <div class="support-box support-box-green">
+            📌 Save this for your next career check-in.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6 -->
+    <div class="slide">
+      <div class="card bg-photo-6">
+        <div class="deco-circle" style="width:300px;height:300px;background:#fff;bottom:-120px;left:-80px;"></div>
+        <div class="brand-tag text-white" style="opacity:0.6;">Booth Talent Insights</div>
+        <div class="card-inner">
+          <div style="flex:1; display:flex; align-items:center;">
+            <div>
+              <div class="headline-impact text-white">AI raised the floor for everyone.</div>
+              <div style="height:10px;"></div>
+              <div class="headline-impact text-white" style="opacity:0.65; font-size:30px;">Your ceiling is still entirely yours.</div>
+            </div>
+          </div>
+          <div style="font-family:'Inter',sans-serif; font-size:13px; color:rgba(255,255,255,0.75); line-height:1.6; margin-bottom:14px;">Ready for your next growth move? We work with marketers who bring this combination &mdash; and match them with teams that understand and value that level of work.</div>
+          <div class="support-box support-box-yellow" style="display:flex; align-items:center; gap:8px; font-weight:700;">
+            <span>&#8594;</span> hirebooth.com/careers
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="nav-btns">
+    <button class="nav-btn" onclick="prev()">&larr;</button>
+    <button class="nav-btn" onclick="next()">&rarr;</button>
+  </div>
+</div>
+
+<script>
+  var current = 0, total = 6;
+  var nav = document.getElementById('nav');
+  for (var i = 0; i < total; i++) {
+    var b = document.createElement('button');
+    b.className = 'dot' + (i===0?' active':'');
+    b.setAttribute('aria-label','Slide '+(i+1));
+    b.onclick=(function(n){return function(){go(n)}})(i);
+    nav.appendChild(b);
+  }
+  var ctr = document.createElement('span');
+  ctr.className='counter'; ctr.id='ctr'; ctr.textContent='1 / '+total;
+  nav.appendChild(ctr);
+
+  function go(n){
+    document.querySelectorAll('.slide')[current].classList.remove('active');
+    document.querySelectorAll('.dot')[current].classList.remove('active');
+    current=n;
+    document.querySelectorAll('.slide')[current].classList.add('active');
+    document.querySelectorAll('.dot')[current].classList.add('active');
+    document.getElementById('ctr').textContent=(current+1)+' / '+total;
+  }
+  function next(){go((current+1)%total);}
+  function prev(){go((current-1+total)%total);}
+  document.addEventListener('keydown',function(e){if(e.key==='ArrowRight')next();if(e.key==='ArrowLeft')prev();});
+</script>
+</body>
+</html>
